@@ -9,8 +9,9 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Input;
+using sept.tools;
 
-namespace sept.platformer
+namespace sept.colorGuesser
 {    
     internal enum GameState
     {
@@ -20,7 +21,7 @@ namespace sept.platformer
         Over
     }
 
-    public class Platformer
+    public class ColorGuesser
     {
         private static GameWindow window;
         private static Color4 currentColor;
@@ -33,8 +34,8 @@ namespace sept.platformer
         private static GameState state = GameState.InitialColor;
 
         public static void Main()
-        {            
-            window = new GameWindow();
+        {
+            window = new GameWindow(2560, 1440, GraphicsMode.Default, "ColorGuesser", GameWindowFlags.Fullscreen);
             // adds event handlers to events of the game window, will be executed by the window when the events happen
             window.Load += onWindowLoad; 
             window.Resize += onWindowResize;
@@ -50,11 +51,9 @@ namespace sept.platformer
 
             window.VSync = VSyncMode.On;
 
-            Random random = new Random();
-            byte r = (byte)random.Next(256);
-            byte g = (byte)random.Next(256);
-            byte b = (byte)random.Next(256);
-            targetColor = new Color4(r, g, b, 255);
+            targetColor = ColorHelper.GetRandomColor(new Random());
+
+
             GL.ClearColor(targetColor);
             currentColor = new Color4();            
 
@@ -96,12 +95,17 @@ namespace sept.platformer
                 // change current color over time    
                 long millisecondsSinceStart = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) - millisecondsAtStart;                
                 // set color components based on time offset (not very good logic)
-                float offsetR = (millisecondsSinceStart % 1000f) / 1000f;
-                float offsetG = (millisecondsSinceStart % 2000f) / 2000f;
-                float offsetB = (millisecondsSinceStart % 3000f) / 3000f;
-                currentColor.R = offsetR;
-                currentColor.G = offsetG;
-                currentColor.B = offsetB;
+
+                double intervalR = 3000d;
+                double intervalG = 5000d;
+                double intervalB = 7000d;
+
+                double offsetR = (Math.Sin(millisecondsSinceStart / intervalR * 2d * Math.PI) + 1d) * 0.5;
+                double offsetG = (Math.Sin(millisecondsSinceStart / intervalG * 2d * Math.PI) + 1d) * 0.5;
+                double offsetB = (Math.Sin(millisecondsSinceStart / intervalB * 2d * Math.PI) + 1d) * 0.5;                                
+                currentColor.R = (float)offsetR;
+                currentColor.G = (float)offsetG;
+                currentColor.B = (float)offsetB;
                 GL.ClearColor(currentColor);
 
                 if (window.Keyboard[Key.Space])
@@ -110,6 +114,22 @@ namespace sept.platformer
                     state = GameState.Over;
                     Debug.WriteLine("score: " + diff);
                 }
+            }
+
+            if (state == GameState.Over)
+            {
+                if (window.Keyboard[Key.Enter])
+                {
+                    state = GameState.InitialColor;
+                    targetColor = ColorHelper.GetRandomColor(new Random());
+
+                    GL.ClearColor(targetColor);
+                    currentColor = new Color4();
+
+                    timeNextStep = DateTime.Now;
+                    timeNextStep = timeNextStep.AddSeconds(3);
+                }
+                
             }
         }
 
