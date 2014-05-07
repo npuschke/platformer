@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MainWindow" Height="570" Width="525"
         KeyDown="HandleKeyDown"
-        Initialized="MainWindow_Initialized" Background="DimGray">
+        Initialized="MainWindow_Initialized" Background="White">
     <DockPanel LastChildFill="True">
         <StackPanel DockPanel.Dock="Right" Width="172">
             <Label Content="Label" Height="56" Name="Score" FontSize="28" FontWeight="Bold" />
