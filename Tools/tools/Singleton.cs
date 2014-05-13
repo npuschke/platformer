@@ -8,7 +8,19 @@ namespace sept.tools
 {
     public class Singleton
     {
-        public static const Singleton instance = new Singleton();
+        private static Singleton _instance;
+        
+        public static Singleton instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = new Singleton();
+                }
+                return _instance;
+            }            
+        }
 
         private Singleton()
         {
