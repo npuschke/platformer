@@ -10,6 +10,8 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Input;
 using sept.tools;
+using sept.gameFramework.mesh;
+using sept.gameFramework.debug;
 
 namespace sept.colorGuesser
 {    
@@ -35,8 +37,7 @@ namespace sept.colorGuesser
 
         private static GameState state = GameState.InitialColor;
 
-        private static int vertexBuffer;
-        private static int elementBuffer;
+        private static Mesh mesh;
         private static int program;
         private static int attributeLocation_vertexPosition;
         private static int uniformLocation_vecColor;
@@ -80,39 +81,18 @@ namespace sept.colorGuesser
 
             GL.Disable(EnableCap.CullFace);
 
-            float[] vertexData = new float[12];
-            vertexData[0] = 1f;
-            vertexData[1] = 1f;
-            vertexData[2] = 0f;
-            vertexData[3] = 1f;
-            vertexData[4] = -1f;
-            vertexData[5] = 0f;
-            vertexData[6] = -1f;
-            vertexData[7] = -1f;
-            vertexData[8] = 0f;
-            vertexData[9] = -1f;
-            vertexData[10] = 1f;
-            vertexData[11] = 0f;
+            // construct fullscreen quad
+            mesh = new Mesh();
+            
+            uint v0 = mesh.addVertex(1f, 1f, 0f);
+            uint v1 = mesh.addVertex(1f, -1f, 0f);
+            uint v2 = mesh.addVertex(-1f, -1f, 0f);
+            uint v3 = mesh.addVertex(-1f, 1f, 0f);
+            
+            mesh.addTriangle(v0, v1, v2);
+            mesh.addTriangle(v0, v2, v3);
 
-            uint[] triangleData = new uint[6];
-            triangleData[0] = 0;
-            triangleData[1] = 1;
-            triangleData[2] = 2;
-            triangleData[3] = 0;
-            triangleData[4] = 2;
-            triangleData[5] = 3; 
-
-            vertexBuffer = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBuffer);
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(vertexData.Length * sizeof(float)), vertexData, BufferUsageHint.StaticDraw);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-
-            CheckForGLError();
-
-            elementBuffer = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, elementBuffer);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(triangleData.Length * sizeof(uint)), triangleData, BufferUsageHint.StaticDraw);
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+            mesh.upload();          
 
             int vertexShader = GL.CreateShader(ShaderType.VertexShader);
             int fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
@@ -258,44 +238,33 @@ namespace sept.colorGuesser
 
         static void onWindowRenderFrame(object sender, FrameEventArgs e)
         {
-            CheckForGLError();
+
+            OpenGLHelper.checkError();
 
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
             // draw here!
             GL.UseProgram(program);
 
-            // draw foo
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBuffer);
-            
+            mesh.prepareDraw();
+
             GL.EnableVertexAttribArray(attributeLocation_vertexPosition);            
             GL.VertexAttribPointer(attributeLocation_vertexPosition, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
 
             // Set uniform value to color
             GL.Uniform3(uniformLocation_vecColor, new Vector3(quadColor.R, quadColor.G, quadColor.B));
 
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, elementBuffer);
-            GL.DrawElements(BeginMode.Triangles, 6, DrawElementsType.UnsignedInt, 0);
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+            mesh.draw();
 
             GL.DisableVertexAttribArray(attributeLocation_vertexPosition);
 
             GL.UseProgram(0);
 
-            CheckForGLError();
+            OpenGLHelper.checkError();
 
             
 
             window.SwapBuffers();
-        }
-
-        private static void CheckForGLError()
-        {
-            ErrorCode errorCode = GL.GetError();
-            if (errorCode != ErrorCode.NoError)
-            {
-                throw new ApplicationException("GL ERROR: " + errorCode.ToString());
-            }
-        }
+        }       
     }
 }
