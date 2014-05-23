@@ -43,8 +43,10 @@ namespace sept.colorGuesser
             DisplayDevice device = DisplayDevice.Default;            
             window = new GameWindow(device.Width, device.Height, GraphicsMode.Default, "ColorGuesser", GameWindowFlags.Fullscreen, device );
 
-            string version_string = GL.GetString(StringName.Version);
-            Debug.WriteLine(version_string);
+            string glVersion = GL.GetString(StringName.Version);
+            string shaderLanguageVersion = GL.GetString(StringName.ShadingLanguageVersion);
+            Debug.WriteLine(glVersion);
+            Debug.WriteLine(shaderLanguageVersion);
 
 
             // adds event handlers to events of the game window, will be executed by the window when the events happen
