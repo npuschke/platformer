@@ -40,14 +40,18 @@ namespace sept.colorGuesser
 
         public static void Main()
         {
-            window = new GameWindow(2560, 1440, GraphicsMode.Default, "ColorGuesser", GameWindowFlags.Fullscreen);
+            string version_string = GL.GetString(StringName.Version);
+            Debug.WriteLine(version_string);
+
+            DisplayDevice device = DisplayDevice.Default;            
+            window = new GameWindow(device.Width, device.Height, GraphicsMode.Default, "ColorGuesser", GameWindowFlags.Fullscreen, device );
             // adds event handlers to events of the game window, will be executed by the window when the events happen
             window.Load += onWindowLoad; 
             window.Resize += onWindowResize;
             window.UpdateFrame += onWindowUpdateFrame;
             window.RenderFrame += onWindowRenderFrame;
             // start!
-            window.Run(60);
+            window.Run(60);                     
         }        
 
         static void onWindowLoad(object sender, EventArgs e)
@@ -101,7 +105,7 @@ namespace sept.colorGuesser
             int fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
 
             string vertexSource = 
-            @"#version 430
+            @"#version 130
             layout (location = 0) in vec3 vertex_position;                        
 
             void main(void)
@@ -111,7 +115,7 @@ namespace sept.colorGuesser
 
 
             string fragmentSource =
-            @"#version 430            
+            @"#version 130            
 
             void main(void)
             {
