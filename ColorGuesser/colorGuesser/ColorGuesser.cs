@@ -26,6 +26,8 @@ namespace sept.colorGuesser
         private static GameWindow window;
         private static Color4 currentColor;
         private static Color4 targetColor;
+        private static Color4 quadColor;
+
 
         private static long millisecondsAtStart;
         private static DateTime timeNextStep;
@@ -37,6 +39,7 @@ namespace sept.colorGuesser
         private static int elementBuffer;
         private static int program;
         private static int attributeLocation_vertexPosition;
+        private static int uniformLocation_vecColor;
 
         public static void Main()
         {            
@@ -67,7 +70,7 @@ namespace sept.colorGuesser
             targetColor = ColorHelper.GetRandomColor(new Random());
 
 
-            GL.ClearColor(targetColor);
+            quadColor = targetColor;
             currentColor = new Color4();            
 
             timeNextStep = DateTime.Now;
@@ -77,8 +80,8 @@ namespace sept.colorGuesser
 
             GL.Disable(EnableCap.CullFace);
 
-            float[] vertexData = new float[9];
-            vertexData[0] = 0f;
+            float[] vertexData = new float[12];
+            vertexData[0] = 1f;
             vertexData[1] = 1f;
             vertexData[2] = 0f;
             vertexData[3] = 1f;
@@ -87,11 +90,17 @@ namespace sept.colorGuesser
             vertexData[6] = -1f;
             vertexData[7] = -1f;
             vertexData[8] = 0f;
+            vertexData[9] = -1f;
+            vertexData[10] = 1f;
+            vertexData[11] = 0f;
 
-            uint[] triangleData = new uint[3];
+            uint[] triangleData = new uint[6];
             triangleData[0] = 0;
             triangleData[1] = 1;
-            triangleData[2] = 2;            
+            triangleData[2] = 2;
+            triangleData[3] = 0;
+            triangleData[4] = 2;
+            triangleData[5] = 3; 
 
             vertexBuffer = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBuffer);
@@ -122,10 +131,13 @@ namespace sept.colorGuesser
             string fragmentSource =
             @"#version 140                        
             #extension GL_ARB_explicit_attrib_location : require
+            #extension GL_ARB_explicit_uniform_location : require
+
+            layout(location = 0) uniform vec3 vecColor;
 
             void main(void)
             {
-                gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+                gl_FragColor = vec4(vecColor, 1.0);
             }            
             ";
 
@@ -167,7 +179,8 @@ namespace sept.colorGuesser
             }
 
             attributeLocation_vertexPosition = GL.GetAttribLocation(program, "vertex_position");
-
+            uniformLocation_vecColor = GL.GetUniformLocation(program, "vecColor");
+            
             GL.BindAttribLocation(program, attributeLocation_vertexPosition, "vertex_position");
         }
 
@@ -189,7 +202,7 @@ namespace sept.colorGuesser
                 switch (state)
                 {
                     case GameState.InitialColor:
-                        GL.ClearColor(Color4.Black);
+                        quadColor = Color4.Black;
                         timeNextStep = DateTime.Now.AddSeconds(1);
                         state = GameState.Transition;
                         break;
@@ -216,7 +229,7 @@ namespace sept.colorGuesser
                 currentColor.R = (float)offsetR;
                 currentColor.G = (float)offsetG;
                 currentColor.B = (float)offsetB;
-                GL.ClearColor(currentColor);
+                quadColor = currentColor;
 
                 if (window.Keyboard[Key.Space])
                 {
@@ -233,7 +246,7 @@ namespace sept.colorGuesser
                     state = GameState.InitialColor;
                     targetColor = ColorHelper.GetRandomColor(new Random());
 
-                    GL.ClearColor(targetColor);
+                    quadColor = targetColor;
                     currentColor = new Color4();
 
                     timeNextStep = DateTime.Now;
@@ -258,8 +271,11 @@ namespace sept.colorGuesser
             GL.EnableVertexAttribArray(attributeLocation_vertexPosition);            
             GL.VertexAttribPointer(attributeLocation_vertexPosition, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
 
+            // Set uniform value to color
+            GL.Uniform3(uniformLocation_vecColor, new Vector3(quadColor.R, quadColor.G, quadColor.B));
+
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, elementBuffer);
-            GL.DrawElements(BeginMode.Triangles, 3, DrawElementsType.UnsignedInt, 0);
+            GL.DrawElements(BeginMode.Triangles, 6, DrawElementsType.UnsignedInt, 0);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
 
             GL.DisableVertexAttribArray(attributeLocation_vertexPosition);
