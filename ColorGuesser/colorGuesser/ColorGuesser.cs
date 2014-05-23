@@ -39,12 +39,14 @@ namespace sept.colorGuesser
         private static int attributeLocation_vertexPosition;
 
         public static void Main()
-        {
+        {            
+            DisplayDevice device = DisplayDevice.Default;            
+            window = new GameWindow(device.Width, device.Height, GraphicsMode.Default, "ColorGuesser", GameWindowFlags.Fullscreen, device );
+
             string version_string = GL.GetString(StringName.Version);
             Debug.WriteLine(version_string);
 
-            DisplayDevice device = DisplayDevice.Default;            
-            window = new GameWindow(device.Width, device.Height, GraphicsMode.Default, "ColorGuesser", GameWindowFlags.Fullscreen, device );
+
             // adds event handlers to events of the game window, will be executed by the window when the events happen
             window.Load += onWindowLoad; 
             window.Resize += onWindowResize;
