@@ -108,8 +108,9 @@ namespace sept.colorGuesser
             int vertexShader = GL.CreateShader(ShaderType.VertexShader);
             int fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
 
-            string vertexSource = 
-            @"#version 130
+            string vertexSource =
+            @"#version 140
+            #extension GL_ARB_explicit_attrib_location : require            
             layout (location = 0) in vec3 vertex_position;                        
 
             void main(void)
@@ -119,7 +120,8 @@ namespace sept.colorGuesser
 
 
             string fragmentSource =
-            @"#version 130            
+            @"#version 140                        
+            #extension GL_ARB_explicit_attrib_location : require
 
             void main(void)
             {
